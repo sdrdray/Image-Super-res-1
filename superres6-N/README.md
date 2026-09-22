@@ -7,6 +7,20 @@ This project provides a web interface for image super-resolution and denoising u
 - Multiple models supported (SwinIR, RRDBNet, custom denoiser)
 - Before/after slider and download for results
 
+## Available models
+
+The current web interface exposes these model choices:
+
+| Model | Purpose | Output scale |
+| --- | --- | ---: |
+| `4xRealWebPhoto_v4_dat2` | General photo upscaling | 4x |
+| `4xNomos2_hq_atd` | High-quality photo upscaling | 4x |
+| `4xNomos8kSC` | Compact model experiment | 4x |
+| `1xDeNoise_realplksr_otf` | Image denoising | 1x |
+
+The three `.pth` files belong in the application directory. The compact
+Nomos model is loaded from the matching file under `models-helaman`.
+
 ## Setup Instructions
 
 ### 1. Clone the repository and enter the directory
@@ -53,6 +67,26 @@ python app.py
 - Upload an image, select a model, and click "Upscale Image"
 - Download or preview the result
 
+## API workflow
+
+The browser calls the same local endpoint directly. A multipart request must
+include an `image` field and may include `model_choice`:
+
+```bash
+curl -X POST http://127.0.0.1:5000/process \
+  -F "image=@input.jpg" \
+  -F "model_choice=4xRealWebPhoto_v4_dat2"
+```
+
+On success, the JSON response contains an `output_filename`. Retrieve it with:
+
+```text
+http://127.0.0.1:5000/image/<output_filename>
+```
+
+Accepted input formats are PNG, JPEG, BMP, TIFF, and TIF. Uploads are written
+to `uploads/`, and generated files are written to `outputs/`.
+
 ## Troubleshooting
 - If you get missing module errors, ensure your environment is activated and dependencies are installed.
 - If CUDA is not available, the app will use CPU (slower).
@@ -63,6 +97,13 @@ python app.py
 - Add the model weights to the project or a subfolder.
 - Update the `model_map` in `app.py` with the new model's configuration.
 - Add a new option in `index.html` if you want it selectable from the UI.
+
+## Performance notes
+
+- CUDA is selected automatically when PyTorch can access a CUDA device.
+- CPU inference works but can be substantially slower for large images.
+- Models are loaded for each request, so the first response includes model
+  loading time and memory use can be significant.
 
 ## File Structure
 
