@@ -4,10 +4,12 @@ import os
 import sys
 import traceback
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Add SwinIR_main to sys.path
-sys.path.append(os.path.abspath('SwinIR_main'))
+sys.path.append(os.path.join(BASE_DIR, 'SwinIR_main'))
 # Add models-helaman to sys.path
-sys.path.append(os.path.abspath('models-helaman'))
+sys.path.append(os.path.join(BASE_DIR, 'models-helaman'))
 
 import cv2
 import torch
@@ -22,8 +24,8 @@ DenoiseCustomNet = network_denoise_custom.DenoiseCustomNet
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'outputs'
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+OUTPUT_FOLDER = os.path.join(BASE_DIR, 'outputs')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'tif', 'tiff'}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -38,7 +40,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory(BASE_DIR, 'index.html')
 
 def rrdbnet_infer(input_path, output_path, model_path, scale, num_in_ch, num_out_ch, num_feat, num_block, num_grow_ch):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -122,7 +124,7 @@ def denoise_custom_infer(input_path, output_path, model_path, num_blocks, in_ch,
 model_map = {
     '4xRealWebPhoto_v4_dat2': {
         'type': 'rrdbnet',
-        'model_path': '4xRealWebPhoto_v4_dat2.pth',
+        'model_path': os.path.join(BASE_DIR, '4xRealWebPhoto_v4_dat2.pth'),
         'scale': 4,
         'num_in_ch': 3,
         'num_out_ch': 3,
@@ -132,7 +134,7 @@ model_map = {
     },
     '4xNomos2_hq_atd': {
         'type': 'rrdbnet',
-        'model_path': '4xNomos2_hq_atd.pth',
+        'model_path': os.path.join(BASE_DIR, '4xNomos2_hq_atd.pth'),
         'scale': 4,
         'num_in_ch': 3,
         'num_out_ch': 3,
@@ -142,7 +144,9 @@ model_map = {
     },
     '4xNomos8kSC': {
         'type': 'rrdbnet',
-        'model_path': '4xNomos8kSC_fp32.param',
+        'model_path': os.path.join(
+            BASE_DIR, 'models-helaman', '4xNomos8kSC', '4xNomos8kSC_fp32.param'
+        ),
         'scale': 4,
         'num_in_ch': 3,
         'num_out_ch': 3,
@@ -152,7 +156,7 @@ model_map = {
     },
     '1xDeNoise_realplksr_otf': {
         'type': 'denoise_custom',
-        'model_path': '1xDeNoise_realplksr_otf.pth',
+        'model_path': os.path.join(BASE_DIR, '1xDeNoise_realplksr_otf.pth'),
         'num_blocks': 30,
         'in_ch': 3,
         'feat_ch': 64,
